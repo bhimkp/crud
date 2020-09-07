@@ -2,59 +2,21 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-//import Cards from './cards';
+import Cards from "./cards";
 
 import UpdateUser from "./update";
 
 // import DeleteUser from './delete';
 
-import {
-  Card,
-  CardText,
-  CardBody,
-  CardTitle,
-  CardSubtitle,
-  Button,
-  Row,
-  Col,
-} from "reactstrap";
-
-const Cards = (data) => {
-  return (
-    <Card>
-      <Col lg="6">
-        <CardBody>
-          <CardTitle key={data.id}>Id: {data.id}</CardTitle>
-          <CardSubtitle>Name: {data.name}</CardSubtitle>
-          <CardText>UserName: {data.username}</CardText>
-          <CardText>Email: {data.email}</CardText>
-          <CardText>
-            Address: {data.address.street}, {data.address.suite},{" "}
-            {data.address.city},{data.address.zipcode}, {data.address.geo.lat},{" "}
-            {data.address.lng}
-          </CardText>
-          <CardText>Phone: {data.phone}</CardText>
-          <CardText>Website: {data.website}</CardText>
-          <CardText>
-            {" "}
-            Company: {data.company.name}, {data.company.cathPhrase},
-            {data.company.bs}
-          </CardText>
-        </CardBody>
-      </Col>
-    </Card>
-  );
-};
+import { Button, Row, Col } from "reactstrap";
 
 class Users extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      data: [],
-    };
-  }
+  state = {
+    error: null,
+    isLoaded: false,
+    data: [],
+    currentUser: { id: "", name: "", email: "" },
+  };
   componentDidMount() {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((response) => response.json())
@@ -74,67 +36,70 @@ class Users extends Component {
       );
   }
 
-  DeleteId(user) {
+  DeleteId = (user) => {
+    console.log(user.id);
     const data = this.state.data.filter((i) => i.id !== user.id);
     this.setState({ data });
-    console.log(this.state.data);
-  }
-  onFormSubmit() {
-    fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        name: formData.name,
-        email: FormData.email,
-      }),
-    });
-  }
+    //console.log(this.state.data);
+  };
 
-  update = () =>
+  updateOriginal = (user) => {
+    console.log(user);
+    let users = [...this.state.data];
+    let currUser = this.state.data.filter((u) => user.id === u.id)[0];
+    console.log(currUser);
+    currUser.name = user.name;
+    currUser.email = user.email;
+    console.log(currUser);
+    users[currUser.id - 1] = currUser;
+    // console.log(users);
     this.setState({
+      data: users,
+    });
+    // this.setState({
+    //   data: { this.state.data.findIndex((user) => user.id === currUser.id)}: currUser}
+    // })
+  };
+
+  update = (user) => {
+    this.setState({
+      currentUser: { id: user.id, name: user.name, email: user.email },
       showForm: !this.state.showForm,
     });
-
+  };
   render() {
-    const listItem = this.state.data.map((item) => {
+    const listUser = this.state.data.map((user) => {
       return (
-        <div key={item.id}>
-          <Row>{Cards(item)}</Row>
-          <Button color="danger" onClick={this.DeleteId.bind(this, item)}>
+        <div key={user.id}>
+          <Row>{Cards(user)}</Row>
+          <Button color="danger" onClick={() => this.DeleteId(user)}>
             Delete
           </Button>
           &nbsp;&nbsp;&nbsp;&nbsp;
-          <Button color="primary" onClick={this.update}>
-            Update
+          <Button color="primary" onClick={() => this.update(user)}>
+            Edit
           </Button>
-          {this.state.showForm ? <UpdateUser /> : ""}
         </div>
       );
     });
-    return <div>{listItem}</div>;
+    return (
+      <div>
+        {listUser}
+        {this.state.showForm ? (
+          <UpdateUser
+            currentUser={this.state.currentUser}
+            updateUserFun={this.updateOriginal}
+          />
+        ) : (
+          ""
+        )}
+        {/* <Button color="primary" onClick={this.update}>
+          Edit
+        </Button>
+        {this.state.showForm ? <UpdateUser /> : ""} */}
+      </div>
+    );
   }
 }
 
 ReactDOM.render(<Users />, document.getElementById("root"));
-
-// render(){
-//     const {error, isLoaded, data} = this.state;
-//     if(error){
-//         return <div>Error: {error.message}</div>
-//     }
-//     else if (!isLoaded){
-//         return <div>Loading...</div>
-//     }
-//     else{
-//         return (
-//             <div>
-//                 {data.map( (val) => (Cards(val) ) )}
-//                 {/* <Button color="danger" onClick={this.DeleteId(data.id)}>Delete</Button> */}
-//             </div>
-//             // <div>
-//             //     {data.map((item) => {
-//             //         <Button onClick={this.DeleteId.bind(this, item)}>Delete</Button>
-//             //     })}
-//             // </div>
-//         );
-//     }
-// }
